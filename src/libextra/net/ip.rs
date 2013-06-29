@@ -17,7 +17,6 @@ use std::libc;
 use std::comm::{stream, SharedChan};
 use std::ptr;
 use std::result;
-use std::str;
 
 use iotask = uv::iotask::IoTask;
 use interact = uv::iotask::interact;
@@ -115,7 +114,7 @@ pub fn get_addr(node: &str, iotask: &iotask)
                 -> result::Result<~[IpAddr], IpGetAddrErr> {
     let (output_po, output_ch) = stream();
     let mut output_ch = Some(SharedChan::new(output_ch));
-    do str::as_buf(node) |node_ptr, len| {
+    do node.as_buf |node_ptr, len| {
         let output_ch = output_ch.swap_unwrap();
         debug!("slice len %?", len);
         let handle = create_uv_getaddrinfo_t();
