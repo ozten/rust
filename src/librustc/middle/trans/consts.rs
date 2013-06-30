@@ -513,7 +513,7 @@ fn const_expr_unadjusted(cx: @mut CrateContext, e: &ast::expr) -> ValueRef {
               ast::expr_vec(ref es, ast::m_imm) => {
                 let (cv, sz, llunitty) = const_vec(cx, e, *es);
                 let llty = val_ty(cv);
-                let gv = do str::as_c_str("const") |name| {
+                let gv = do "const".as_c_str |name| {
                     llvm::LLVMAddGlobal(cx.llmod, llty.to_ref(), name)
                 };
                 llvm::LLVMSetInitializer(gv, cv);

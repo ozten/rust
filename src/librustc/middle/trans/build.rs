@@ -1075,14 +1075,14 @@ pub fn Trap(cx: block) {
     unsafe {
         if cx.unreachable { return; }
         let b = B(cx);
-        let BB: BasicBlockRef = llvm::LLVMGetInsertBlock(b);
-        let FN: ValueRef = llvm::LLVMGetBasicBlockParent(BB);
-        let M: ModuleRef = llvm::LLVMGetGlobalParent(FN);
-        let T: ValueRef = str::as_c_str("llvm.trap", |buf| {
+        let BB = llvm::LLVMGetInsertBlock(b);
+        let FN = llvm::LLVMGetBasicBlockParent(BB);
+        let M = llvm::LLVMGetGlobalParent(FN);
+        let T = do "llvm.trap".as_c_str |buf| {
             llvm::LLVMGetNamedFunction(M, buf)
-        });
+        };
         assert!((T as int != 0));
-        let Args: ~[ValueRef] = ~[];
+        let Args = ~[];
         count_insn(cx, "trap");
         llvm::LLVMBuildCall(b, T, vec::raw::to_ptr(Args), Args.len() as c_uint, noname());
     }

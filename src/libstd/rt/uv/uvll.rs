@@ -282,12 +282,12 @@ pub unsafe fn timer_stop(timer_ptr: *uv_timer_t) -> c_int {
 }
 
 pub unsafe fn malloc_ip4_addr(ip: &str, port: int) -> *sockaddr_in {
-    do str::as_c_str(ip) |ip_buf| {
+    do ip.as_c_str |ip_buf| {
         rust_uv_ip4_addrp(ip_buf as *u8, port as libc::c_int)
     }
 }
 pub unsafe fn malloc_ip6_addr(ip: &str, port: int) -> *sockaddr_in6 {
-    do str::as_c_str(ip) |ip_buf| {
+    do ip.as_c_str |ip_buf| {
         rust_uv_ip6_addrp(ip_buf as *u8, port as libc::c_int)
     }
 }

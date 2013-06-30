@@ -241,12 +241,11 @@ pub fn env() -> ~[(~str,~str)] {
 pub fn getenv(n: &str) -> Option<~str> {
     unsafe {
         do with_env_lock {
-            let s = str::as_c_str(n, |s| libc::getenv(s));
+            let s = n.as_c_str(|s| libc::getenv(s as *libc::c_char));
             if ptr::null::<u8>() == cast::transmute(s) {
-                None::<~str>
+                None
             } else {
-                let s = cast::transmute(s);
-                Some::<~str>(str::raw::from_buf(s))
+                Some(str::raw::from_buf(cast::transmute(s)))
             }
         }
     }
@@ -275,8 +274,8 @@ pub fn getenv(n: &str) -> Option<~str> {
 pub fn setenv(n: &str, v: &str) {
     unsafe {
         do with_env_lock {
-            do str::as_c_str(n) |nbuf| {
-                do str::as_c_str(v) |vbuf| {
+            do n.to_str().as_c_str |nbuf| {
+                do v.to_str().as_c_str |vbuf| {
                     libc::funcs::posix01::unistd::setenv(nbuf, vbuf, 1);
                 }
             }
@@ -307,7 +306,7 @@ pub fn unsetenv(n: &str) {
     fn _unsetenv(n: &str) {
         unsafe {
             do with_env_lock {
-                do str::as_c_str(n) |nbuf| {
+                do n.to_str().as_c_str |nbuf| {
                     libc::funcs::posix01::unistd::unsetenv(nbuf);
                 }
             }
@@ -463,7 +462,7 @@ pub fn self_exe_path() -> Option<Path> {
             use libc::funcs::posix01::unistd::readlink;
 
             let mut path_str = str::with_capacity(TMPBUF_SZ);
-            let len = do str::as_c_str(path_str) |buf| {
+            let len = do path_str.as_c_str |buf| {
                 let buf = buf as *mut c_char;
                 do bytes!("/proc/self/exe", 0).as_imm_buf |proc_self_buf, _| {
                     readlink(proc_self_buf as *libc::c_char, buf, TMPBUF_SZ as size_t)
@@ -598,7 +597,7 @@ pub fn walk_dir(p: &Path, f: &fn(&Path) -> bool) -> bool {
 /// Indicates whether a path represents a directory
 pub fn path_is_dir(p: &Path) -> bool {
     unsafe {
-        do str::as_c_str(p.to_str()) |buf| {
+        do p.to_str().as_c_str |buf| {
             rustrt::rust_path_is_dir(buf) != 0 as c_int
         }
     }
@@ -607,7 +606,7 @@ pub fn path_is_dir(p: &Path) -> bool {
 /// Indicates whether a path exists
 pub fn path_exists(p: &Path) -> bool {
     unsafe {
-        do str::as_c_str(p.to_str()) |buf| {
+        do p.to_str().as_c_str |buf| {
             rustrt::rust_path_exists(buf) != 0 as c_int
         }
     }
@@ -952,7 +951,7 @@ pub fn copy_file(from: &Path, to: &Path) -> bool {
             fclose(ostream);
 
             // Give the new file the old file's permissions
-            if do str::as_c_str(to.to_str()) |to_buf| {
+            if do to.to_str().as_c_str |to_buf| {
                 libc::chmod(to_buf, from_mode as libc::mode_t)
             } != 0 {
                 return false; // should be a condition...
@@ -1303,7 +1302,7 @@ pub fn glob(pattern: &str) -> ~[Path] {
     }
 
     let mut g = default_glob_t();
-    do str::as_c_str(pattern) |c_pattern| {
+    do pattern.as_c_str |c_pattern| {
         unsafe { libc::glob(c_pattern, 0, ptr::null(), &mut g) }
     };
     do(|| {

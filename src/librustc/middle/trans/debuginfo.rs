@@ -58,7 +58,6 @@ use std::libc;
 use std::libc::{c_uint, c_ulonglong};
 use std::cmp;
 use std::ptr;
-use std::str::as_c_str;
 use std::sys;
 use std::vec;
 use syntax::codemap::span;
@@ -152,7 +151,7 @@ pub fn create_local_var(bcx: block, local: @ast::local) -> DIVariable {
         Some(_) => create_block(bcx)
     };
 
-    let var_md = do as_c_str(name) |name| { unsafe {
+    let var_md = do name.as_c_str |name| { unsafe {
         llvm::LLVMDIBuilderCreateLocalVariable(
             DIB(cx), AutoVariableTag as u32,
             context, name, filemd,
@@ -208,7 +207,7 @@ pub fn create_arg(bcx: block, arg: &ast::arg, span: span) -> Option<DIVariable> 
             // XXX: This is wrong; it should work for multiple bindings.
             let ident = path.idents.last();
             let name: &str = cx.sess.str_of(*ident);
-            let mdnode = do as_c_str(name) |name| { unsafe {
+            let mdnode = do name.as_c_str |name| { unsafe {
                 llvm::LLVMDIBuilderCreateLocalVariable(
                     DIB(cx),
                     ArgVariableTag as u32,
@@ -313,8 +312,8 @@ pub fn create_function(fcx: fn_ctxt) -> DISubprogram {
     };
 
     let fn_md =
-        do as_c_str(cx.sess.str_of(ident)) |name| {
-        do as_c_str(cx.sess.str_of(ident)) |linkage| { unsafe {
+        do cx.sess.str_of(ident).as_c_str |name| {
+        do cx.sess.str_of(ident).as_c_str |linkage| { unsafe {
             llvm::LLVMDIBuilderCreateFunction(
                 DIB(cx),
                 file_md,
@@ -359,11 +358,11 @@ fn create_compile_unit(cx: @mut CrateContext) {
     let work_dir = cx.sess.working_dir.to_str();
     let producer = fmt!("rustc version %s", env!("CFG_VERSION"));
 
-    do as_c_str(crate_name) |crate_name| {
-    do as_c_str(work_dir) |work_dir| {
-    do as_c_str(producer) |producer| {
-    do as_c_str("") |flags| {
-    do as_c_str("") |split_name| { unsafe {
+    do crate_name.as_c_str |crate_name| {
+    do work_dir.as_c_str |work_dir| {
+    do producer.as_c_str |producer| {
+    do "".as_c_str |flags| {
+    do "".as_c_str |split_name| { unsafe {
         llvm::LLVMDIBuilderCreateCompileUnit(dcx.builder,
             DW_LANG_RUST as c_uint, crate_name, work_dir, producer,
             cx.sess.opts.optimize != session::No,
@@ -388,8 +387,8 @@ fn create_file(cx: &mut CrateContext, full_path: &str) -> DIFile {
         };
 
     let file_md =
-        do as_c_str(file_name) |file_name| {
-        do as_c_str(work_dir) |work_dir| { unsafe {
+        do file_name.as_c_str |file_name| {
+        do work_dir.as_c_str |work_dir| { unsafe {
             llvm::LLVMDIBuilderCreateFile(DIB(cx), file_name, work_dir)
         }}};
 
@@ -477,7 +476,7 @@ fn create_basic_type(cx: &mut CrateContext, t: ty::t, _span: span) -> DIType {
     };
 
     let (size, align) = size_and_align_of(cx, t);
-    let ty_md = do as_c_str(name) |name| { unsafe {
+    let ty_md = do name.as_c_str |name| { unsafe {
             llvm::LLVMDIBuilderCreateBasicType(
                 DIB(cx),
                 name,
@@ -496,7 +495,7 @@ fn create_basic_type(cx: &mut CrateContext, t: ty::t, _span: span) -> DIType {
 fn create_pointer_type(cx: &mut CrateContext, t: ty::t, _span: span, pointee: DIType) -> DIType {
     let (size, align) = size_and_align_of(cx, t);
     let name = ty_to_str(cx.tcx, t);
-    let ptr_md = do as_c_str(name) |name| { unsafe {
+    let ptr_md = do name.as_c_str |name| { unsafe {
         llvm::LLVMDIBuilderCreatePointerType(
             DIB(cx),
             pointee,
@@ -537,7 +536,7 @@ impl StructContext {
         debug!("StructContext(%s)::add_member: %s, size=%u, align=%u, offset=%u",
                 self.name, name, size, align, offset);
 
-        let mem_t = do as_c_str(name) |name| { unsafe {
+        let mem_t = do name.as_c_str |name| { unsafe {
             llvm::LLVMDIBuilderCreateMemberType(
                 self.builder,
                 self.file,
@@ -571,7 +570,7 @@ impl StructContext {
         let actual_total_size = self.get_total_size_with_alignment();
 
         let struct_md =
-            do as_c_str(self.name) |name| { unsafe {
+            do self.name.as_c_str |name| { unsafe {
                 llvm::LLVMDIBuilderCreateStructType(
                     self.builder,
                     self.file,
@@ -611,7 +610,7 @@ fn create_struct(cx: &mut CrateContext, struct_type: ty::t, fields: ~[ty::field]
 fn voidptr(cx: &mut CrateContext) -> (DIDerivedType, uint, uint) {
     let size = sys::size_of::<ValueRef>();
     let align = sys::min_align_of::<ValueRef>();
-    let vp = do as_c_str("*void") |name| { unsafe {
+    let vp = do "*void".as_c_str |name| { unsafe {
             llvm::LLVMDIBuilderCreatePointerType(
                 DIB(cx),
                 ptr::null(),
@@ -796,7 +795,7 @@ fn create_unimpl_ty(cx: &mut CrateContext, t: ty::t) -> DIType {
     debug!("create_unimpl_ty: %?", ty::get(t));
 
     let name = ty_to_str(cx.tcx, t);
-    let md = do as_c_str(fmt!("NYI<%s>", name)) |name| { unsafe {
+    let md = do fmt!("NYI<%s>", name).as_c_str |name| { unsafe {
         llvm::LLVMDIBuilderCreateBasicType(
             DIB(cx),
             name,

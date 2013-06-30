@@ -1031,13 +1031,13 @@ pub unsafe fn buf_init(input: *u8, len: uint) -> uv_buf_t {
     return out_buf;
 }
 pub unsafe fn ip4_addr(ip: &str, port: int) -> sockaddr_in {
-    do str::as_c_str(ip) |ip_buf| {
+    do ip.as_c_str |ip_buf| {
         rust_uv_ip4_addr(ip_buf as *u8,
                                  port as libc::c_int)
     }
 }
 pub unsafe fn ip6_addr(ip: &str, port: int) -> sockaddr_in6 {
-    do str::as_c_str(ip) |ip_buf| {
+    do ip.as_c_str |ip_buf| {
         rust_uv_ip6_addr(ip_buf as *u8,
                                  port as libc::c_int)
     }
