@@ -2026,8 +2026,7 @@ pub trait OwnedStr {
     fn reserve(&mut self, n: uint);
     fn reserve_at_least(&mut self, n: uint);
     fn capacity(&self) -> uint;
-
-    fn as_bytes_with_null_consume(self) -> ~[u8];
+    fn to_bytes(self) -> ~[u8];
     fn to_c_str(self) -> ~[u8];
 }
 
@@ -2233,13 +2232,13 @@ impl OwnedStr for ~str {
     /// Convert to a vector of bytes. This does not allocate a new
     /// string, and includes the null terminator.
     #[inline]
-    fn as_bytes_with_null_consume(self) -> ~[u8] {
+    fn to_bytes(self) -> ~[u8] {
         unsafe { ::cast::transmute(self) }
     }
 
     #[inline]
     fn to_c_str(self) -> ~[u8] {
-        let bytes = self.as_bytes_with_null_consume();
+        let bytes = self.to_bytes();
         assert!(bytes.slice(0, bytes.len() - 1).iter().all(|byte| *byte != 0));
         bytes
     }
@@ -3015,17 +3014,17 @@ mod tests {
     }
 
     #[test]
-    fn test_as_bytes_with_null_consume() {
+    fn test_to_bytes() {
         let s = ~"ศไทย中华Việt Nam";
         let v = ~[
             224, 184, 168, 224, 185, 132, 224, 184, 151, 224, 184, 162, 228,
             184, 173, 229, 141, 142, 86, 105, 225, 187, 135, 116, 32, 78, 97,
             109, 0
         ];
-        assert_eq!((~"").as_bytes_with_null_consume(), ~[0]);
-        assert_eq!((~"abc").as_bytes_with_null_consume(),
+        assert_eq!((~"").to_bytes(), ~[0]);
+        assert_eq!((~"abc").to_bytes(),
                    ~['a' as u8, 'b' as u8, 'c' as u8, 0]);
-        assert_eq!(s.as_bytes_with_null_consume(), v);
+        assert_eq!(s.to_bytes(), v);
     }
 
     #[test]
