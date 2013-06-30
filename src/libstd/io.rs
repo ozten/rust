@@ -61,7 +61,7 @@ use iterator::IteratorUtil;
 use ptr;
 use result;
 use str;
-use str::StrSlice;
+use str::{StrSlice, OwnedStr};
 use to_str::ToStr;
 use uint;
 use vec;
@@ -1029,17 +1029,16 @@ pub fn stdin() -> @Reader {
 }
 
 pub fn file_reader(path: &Path) -> Result<@Reader, ~str> {
-    unsafe {
-        let f = os::as_c_charp(path.to_str(), |pathbuf| {
-            os::as_c_charp("r", |modebuf|
-                libc::fopen(pathbuf, modebuf)
-            )
-        });
-        return if f as uint == 0u { result::Err(~"error opening "
-                                                + path.to_str()) }
-        else {
-            result::Ok(FILE_reader(f, true))
+    let f = do path.to_str().as_c_str |pathbuf| {
+        do bytes!("r", 0).as_imm_buf |modebuf, _| {
+            unsafe { libc::fopen(pathbuf, modebuf as *libc::c_char) }
         }
+    };
+
+    if f as uint == 0u {
+        result::Err(~"error opening " + path.to_str())
+    } else {
+        result::Ok(FILE_reader(f, true))
     }
 }
 
@@ -1280,7 +1279,7 @@ pub fn mk_file_writer(path: &Path, flags: &[FileFlag])
         }
     }
     let fd = unsafe {
-        do os::as_c_charp(path.to_str()) |pathbuf| {
+        do path.to_str().as_c_str |pathbuf| {
             libc::open(pathbuf, fflags,
                        (S_IRUSR | S_IWUSR) as c_int)
         }
@@ -1566,9 +1565,9 @@ pub fn file_writer(path: &Path, flags: &[FileFlag]) -> Result<@Writer, ~str> {
 // FIXME: fileflags // #2004
 pub fn buffered_file_writer(path: &Path) -> Result<@Writer, ~str> {
     unsafe {
-        let f = do os::as_c_charp(path.to_str()) |pathbuf| {
-            do os::as_c_charp("w") |modebuf| {
-                libc::fopen(pathbuf, modebuf)
+        let f = do path.to_str().as_c_str |pathbuf| {
+            do bytes!("w", 0).as_imm_buf |modebuf, _| {
+                libc::fopen(pathbuf, modebuf as *libc::c_char)
             }
         };
         return if f as uint == 0u {
