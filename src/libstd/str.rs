@@ -2028,6 +2028,7 @@ pub trait OwnedStr {
     fn capacity(&self) -> uint;
 
     fn as_bytes_with_null_consume(self) -> ~[u8];
+    fn to_c_str(self) -> ~[u8];
 }
 
 impl OwnedStr for ~str {
@@ -2234,6 +2235,13 @@ impl OwnedStr for ~str {
     #[inline]
     fn as_bytes_with_null_consume(self) -> ~[u8] {
         unsafe { ::cast::transmute(self) }
+    }
+
+    #[inline]
+    fn to_c_str(self) -> ~[u8] {
+        let bytes = self.as_bytes_with_null_consume();
+        assert!(bytes.slice(0, bytes.len() - 1).iter().all(|byte| *byte != 0));
+        bytes
     }
 }
 
@@ -3076,6 +3084,18 @@ mod tests {
     }
 
     #[test]
+    fn test_to_c_str() {
+        let s = ~"ศไทย中华Việt Nam";
+        let v = ~[
+            224, 184, 168, 224, 185, 132, 224, 184, 151, 224, 184, 162, 228,
+            184, 173, 229, 141, 142, 86, 105, 225, 187, 135, 116, 32, 78, 97,
+            109, 0
+        ];
+        assert_eq!((~"").to_c_str(), ~[0]);
+        assert_eq!((~"abc").to_c_str(), ~['a' as u8, 'b' as u8, 'c' as u8, 0]);
+        assert_eq!(s.to_c_str(), v);
+    }
+
     fn test_subslice_offset() {
         let a = "kernelsprite";
         let b = a.slice(7, a.len());
