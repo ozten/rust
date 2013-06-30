@@ -15,7 +15,9 @@ use str;
 use str::StrSlice;
 use cast;
 use iterator::IteratorUtil;
-use vec::{CopyableVector, ImmutableVector, OwnedVector};
+use vec::{CopyableVector, ImmutableVector};
+#[cfg(stage0)]
+use vec::OwnedVector;
 use to_bytes::IterBytes;
 
 /// Datatype to hold one ascii character. It wraps a `u8`, with the highest bit always zero.
@@ -100,17 +102,24 @@ impl<'self> AsciiCast<&'self[Ascii]> for &'self [u8] {
     }
 }
 
-impl<'self> AsciiCast<&'self[Ascii]> for &'self str {
+impl<'self> AsciiCast<&'self [Ascii]> for &'self str {
     #[inline]
-    fn to_ascii(&self) -> &'self[Ascii] {
+    fn to_ascii(&self) -> &'self [Ascii] {
         assert!(self.is_ascii());
-        unsafe {self.to_ascii_nocheck()}
+        unsafe { self.to_ascii_nocheck() }
     }
 
+    #[cfg(stage0)]
     #[inline]
-    unsafe fn to_ascii_nocheck(&self) -> &'self[Ascii] {
+    unsafe fn to_ascii_nocheck(&self) -> &'self [Ascii] {
         let (p,len): (*u8, uint) = cast::transmute(*self);
         cast::transmute((p, len - 1))
+    }
+
+    #[cfg(not(stage0))]
+    #[inline]
+    unsafe fn to_ascii_nocheck(&self) -> &'self [Ascii] {
+        cast::transmute(*self)
     }
 
     #[inline]
@@ -185,11 +194,18 @@ impl OwnedAsciiCast for ~str {
         unsafe {self.into_ascii_nocheck()}
     }
 
+    #[cfg(stage0)]
     #[inline]
     unsafe fn into_ascii_nocheck(self) -> ~[Ascii] {
         let mut r: ~[Ascii] = cast::transmute(self);
         r.pop();
         r
+    }
+
+    #[cfg(not(stage0))]
+    #[inline]
+    unsafe fn into_ascii_nocheck(self) -> ~[Ascii] {
+        cast::transmute(self)
     }
 }
 
@@ -209,11 +225,19 @@ pub trait AsciiStr {
 }
 
 impl<'self> AsciiStr for &'self [Ascii] {
+    #[cfg(stage0)]
     #[inline]
     fn to_str_ascii(&self) -> ~str {
         let mut cpy = self.to_owned();
         cpy.push(0u8.to_ascii());
-        unsafe {cast::transmute(cpy)}
+        unsafe { cast::transmute(cpy) }
+    }
+
+    #[cfg(not(stage0))]
+    #[inline]
+    fn to_str_ascii(&self) -> ~str {
+        let cpy = self.to_owned();
+        unsafe { cast::transmute(cpy) }
     }
 
     #[inline]
@@ -233,11 +257,18 @@ impl<'self> AsciiStr for &'self [Ascii] {
 }
 
 impl ToStrConsume for ~[Ascii] {
+    #[cfg(stage0)]
     #[inline]
     fn into_str(self) -> ~str {
         let mut cpy = self;
         cpy.push(0u8.to_ascii());
-        unsafe {cast::transmute(cpy)}
+        unsafe { cast::transmute(cpy) }
+    }
+
+    #[cfg(not(stage0))]
+    #[inline]
+    fn into_str(self) -> ~str {
+        unsafe { cast::transmute(self) }
     }
 }
 
@@ -256,7 +287,7 @@ pub trait ToBytesConsume {
 
 impl ToBytesConsume for ~[Ascii] {
     fn into_bytes(self) -> ~[u8] {
-        unsafe {cast::transmute(self)}
+        unsafe { cast::transmute(self) }
     }
 }
 

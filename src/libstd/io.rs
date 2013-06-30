@@ -1698,6 +1698,7 @@ pub fn with_bytes_writer(f: &fn(@Writer)) -> ~[u8] {
     copy *bytes
 }
 
+#[cfg(stage0)]
 pub fn with_str_writer(f: &fn(@Writer)) -> ~str {
     let mut v = with_bytes_writer(f);
 
@@ -1708,6 +1709,11 @@ pub fn with_str_writer(f: &fn(@Writer)) -> ~str {
     unsafe {
         ::cast::transmute(v)
     }
+}
+
+#[cfg(not(stage0))]
+pub fn with_str_writer(f: &fn(@Writer)) -> ~str {
+    str::from_bytes(with_bytes_writer(f))
 }
 
 // Utility functions
