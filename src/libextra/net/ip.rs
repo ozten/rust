@@ -114,9 +114,8 @@ pub fn get_addr(node: &str, iotask: &iotask)
                 -> result::Result<~[IpAddr], IpGetAddrErr> {
     let (output_po, output_ch) = stream();
     let mut output_ch = Some(SharedChan::new(output_ch));
-    do node.as_buf |node_ptr, len| {
+    do node.as_c_str |node_ptr| {
         let output_ch = output_ch.swap_unwrap();
-        debug!("slice len %?", len);
         let handle = create_uv_getaddrinfo_t();
         let handle_ptr: *uv_getaddrinfo_t = &handle;
         let handle_data = GetAddrData {

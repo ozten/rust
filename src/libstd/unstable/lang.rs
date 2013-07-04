@@ -72,8 +72,8 @@ pub fn fail_bounds_check(file: *c_char, line: size_t,
                          index: size_t, len: size_t) {
     let msg = fmt!("index out of bounds: the len is %d but the index is %d",
                     len as int, index as int);
-    do msg.as_buf |p, _len| {
-        fail_(p as *c_char, file, line);
+    do msg.as_c_str |buf| {
+        fail_(buf, file, line);
     }
 }
 
@@ -126,8 +126,8 @@ unsafe fn fail_borrowed(box: *mut BoxRepr, file: *c_char, line: size_t) {
     match try_take_task_borrow_list() {
         None => { // not recording borrows
             let msg = "borrowed";
-            do msg.as_buf |msg_p, _| {
-                fail_(msg_p as *c_char, file, line);
+            do msg.as_c_str |msg_p| {
+                fail_(msg_p, file, line);
             }
         }
         Some(borrow_list) => { // recording borrows
@@ -142,8 +142,8 @@ unsafe fn fail_borrowed(box: *mut BoxRepr, file: *c_char, line: size_t) {
                     sep = " and at ";
                 }
             }
-            do msg.as_buf |msg_p, _| {
-                fail_(msg_p as *c_char, file, line)
+            do msg.as_c_str |msg_p| {
+                fail_(msg_p, file, line)
             }
         }
     }
@@ -319,8 +319,8 @@ pub unsafe fn unrecord_borrow(a: *u8, old_ref_count: uint,
             let br = borrow_list.pop();
             if br.box != a || br.file != file || br.line != line {
                 let err = fmt!("wrong borrow found, br=%?", br);
-                do err.as_buf |msg_p, _| {
-                    fail_(msg_p as *c_char, file, line)
+                do err.as_c_str |msg_p| {
+                    fail_(msg_p, file, line)
                 }
             }
             borrow_list

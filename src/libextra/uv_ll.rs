@@ -831,8 +831,8 @@ extern {
     unsafe fn rust_uv_getaddrinfo(loop_ptr: *libc::c_void,
                                   handle: *uv_getaddrinfo_t,
                                   cb: *u8,
-                                  node_name_ptr: *u8,
-                                  service_name_ptr: *u8,
+                                  node_name_ptr: *libc::c_char,
+                                  service_name_ptr: *libc::c_char,
                                   // should probably only pass ptr::null()
                                   hints: *addrinfo)
         -> libc::c_int;
@@ -1098,8 +1098,8 @@ pub unsafe fn timer_stop(timer_ptr: *uv_timer_t) -> libc::c_int {
 pub unsafe fn getaddrinfo(loop_ptr: *libc::c_void,
                            handle: *uv_getaddrinfo_t,
                            cb: *u8,
-                           node_name_ptr: *u8,
-                           service_name_ptr: *u8,
+                           node_name_ptr: *libc::c_char,
+                           service_name_ptr: *libc::c_char,
                            hints: *addrinfo) -> libc::c_int {
     rust_uv_getaddrinfo(loop_ptr,
                            handle,
