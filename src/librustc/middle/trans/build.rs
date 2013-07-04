@@ -21,6 +21,7 @@ use syntax::codemap::span;
 use middle::trans::base;
 use middle::trans::type_::Type;
 
+use std::c_str::ToCStr;
 use std::cast;
 use std::libc::{c_uint, c_ulonglong, c_char};
 use std::hashmap::HashMap;
@@ -174,7 +175,7 @@ pub fn IndirectBr(cx: block, Addr: ValueRef, NumDests: uint) {
 }
 
 // This is a really awful way to get a zero-length c-string, but better (and a
-// lot more efficient) than doing str::as_c_str("", ...) every time.
+// lot more efficient) than doing c_str::CString::from_str("", ...) every time.
 pub fn noname() -> *c_char {
     unsafe {
         static cnull: uint = 0u;
@@ -902,7 +903,7 @@ pub fn add_comment(bcx: block, text: &str) {
             let comment_text = ~"# " +
                 sanitized.replace("\n", "\n\t# ");
             count_insn(bcx, "inlineasm");
-            let asm = do comment_text.as_c_str |c| {
+            let asm = do comment_text.to_c_str().with |c| {
                 llvm::LLVMConstInlineAsm(Type::func([], &Type::void()).to_ref(),
                                          c, noname(), False, False)
             };
@@ -1078,7 +1079,7 @@ pub fn Trap(cx: block) {
         let BB = llvm::LLVMGetInsertBlock(b);
         let FN = llvm::LLVMGetBasicBlockParent(BB);
         let M = llvm::LLVMGetGlobalParent(FN);
-        let T = do "llvm.trap".as_c_str |buf| {
+        let T = do "llvm.trap".to_c_str().with |buf| {
             llvm::LLVMGetNamedFunction(M, buf)
         };
         assert!((T as int != 0));

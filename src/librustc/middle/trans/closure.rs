@@ -27,6 +27,7 @@ use util::ppaux::ty_to_str;
 
 use middle::trans::type_::Type;
 
+use std::c_str::ToCStr;
 use std::vec;
 use syntax::ast;
 use syntax::ast_map::path_name;
@@ -332,7 +333,7 @@ pub fn load_environment(fcx: fn_ctxt,
     let llloadenv = match fcx.llloadenv {
         Some(ll) => ll,
         None => {
-            let ll = do "load_env".as_c_str |buf| {
+            let ll = do "load_env".to_c_str().with |buf| {
                 unsafe {
                     llvm::LLVMAppendBasicBlockInContext(fcx.ccx.llcx, fcx.llfn, buf)
                 }

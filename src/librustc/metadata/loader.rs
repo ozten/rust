@@ -23,6 +23,7 @@ use syntax::parse::token::ident_interner;
 use syntax::print::pprust;
 use syntax::{ast, attr};
 
+use std::c_str::ToCStr;
 use std::cast;
 use std::io;
 use std::option;
@@ -190,7 +191,7 @@ pub fn metadata_matches(extern_metas: &[@ast::meta_item],
 fn get_metadata_section(os: os,
                         filename: &Path) -> Option<@~[u8]> {
     unsafe {
-        let mb = do filename.to_str().as_c_str |buf| {
+        let mb = do filename.to_c_str().with |buf| {
             llvm::LLVMRustCreateMemoryBufferWithContentsOfFile(buf)
         };
         if mb as int == 0 { return option::None::<@~[u8]>; }

@@ -12,6 +12,7 @@
 
 #[allow(missing_doc)];
 
+use c_str::ToCStr;
 use option::{Some, None};
 use cast;
 use gc;
@@ -19,7 +20,6 @@ use io;
 use libc;
 use libc::{c_char, size_t};
 use repr;
-use str::StrSlice;
 use str;
 use unstable::intrinsics;
 
@@ -124,8 +124,8 @@ pub trait FailWithCause {
 
 impl FailWithCause for ~str {
     fn fail_with(cause: ~str, file: &'static str, line: uint) -> ! {
-        do cause.as_c_str |msg_buf| {
-            do file.as_c_str |file_buf| {
+        do cause.to_c_str().with |msg_buf| {
+            do file.to_c_str().with |file_buf| {
                 begin_unwind_(msg_buf, file_buf, line as libc::size_t)
             }
         }
@@ -134,8 +134,8 @@ impl FailWithCause for ~str {
 
 impl FailWithCause for &'static str {
     fn fail_with(cause: &'static str, file: &'static str, line: uint) -> ! {
-        do cause.as_c_str |msg_buf| {
-            do file.as_c_str |file_buf| {
+        do cause.to_c_str().with |msg_buf| {
+            do file.to_c_str().with |file_buf| {
                 begin_unwind_(msg_buf, file_buf, line as libc::size_t)
             }
         }

@@ -16,6 +16,8 @@ Cross-platform file path handling
 
 #[allow(missing_doc)];
 
+use c_str::ToCStr;
+use c_str;
 use container::Container;
 use cmp::Eq;
 use iterator::IteratorUtil;
@@ -337,7 +339,7 @@ mod stat {
 #[cfg(target_os = "win32")]
 impl WindowsPath {
     pub fn stat(&self) -> Option<libc::stat> {
-        do self.to_str().as_c_str |buf| {
+        do self.to_c_str().with |buf| {
             let mut st = stat::arch::default_stat();
             match unsafe { libc::stat(buf, &mut st) } {
                 0 => Some(st),
@@ -371,7 +373,7 @@ impl WindowsPath {
 #[cfg(not(target_os = "win32"))]
 impl PosixPath {
     pub fn stat(&self) -> Option<libc::stat> {
-        do self.to_str().as_c_str |buf| {
+        do self.to_c_str().with |buf| {
             let mut st = stat::arch::default_stat();
             match unsafe { libc::stat(buf as *libc::c_char, &mut st) } {
                 0 => Some(st),
@@ -449,7 +451,7 @@ impl PosixPath {
 #[cfg(unix)]
 impl PosixPath {
     pub fn lstat(&self) -> Option<libc::stat> {
-        do self.to_str().as_c_str |buf| {
+        do self.to_c_str().with |buf| {
             let mut st = stat::arch::default_stat();
             match unsafe { libc::lstat(buf, &mut st) } {
                 0 => Some(st),
@@ -518,6 +520,12 @@ impl ToStr for PosixPath {
             s.push_str("/");
         }
         s + self.components.connect("/")
+    }
+}
+
+impl ToCStr for PosixPath {
+    fn to_c_str(&self) -> c_str::CString {
+        self.to_str().to_c_str()
     }
 }
 
@@ -714,6 +722,11 @@ impl ToStr for WindowsPath {
     }
 }
 
+impl c_str::ToCStr for WindowsPath {
+    fn to_c_str(&self) -> c_str::CString {
+        self.to_str().to_c_str()
+    }
+}
 
 impl GenericPath for WindowsPath {
     fn from_str(s: &str) -> WindowsPath {

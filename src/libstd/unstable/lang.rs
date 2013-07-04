@@ -10,6 +10,7 @@
 
 //! Runtime calls emitted by the compiler.
 
+use c_str::ToCStr;
 use iterator::IteratorUtil;
 use uint;
 use cast::transmute;
@@ -72,7 +73,7 @@ pub fn fail_bounds_check(file: *c_char, line: size_t,
                          index: size_t, len: size_t) {
     let msg = fmt!("index out of bounds: the len is %d but the index is %d",
                     len as int, index as int);
-    do msg.as_c_str |buf| {
+    do msg.to_c_str().with |buf| {
         fail_(buf, file, line);
     }
 }
@@ -126,7 +127,7 @@ unsafe fn fail_borrowed(box: *mut BoxRepr, file: *c_char, line: size_t) {
     match try_take_task_borrow_list() {
         None => { // not recording borrows
             let msg = "borrowed";
-            do msg.as_c_str |msg_p| {
+            do msg.to_c_str().with |msg_p| {
                 fail_(msg_p, file, line);
             }
         }
@@ -142,7 +143,7 @@ unsafe fn fail_borrowed(box: *mut BoxRepr, file: *c_char, line: size_t) {
                     sep = " and at ";
                 }
             }
-            do msg.as_c_str |msg_p| {
+            do msg.to_c_str().with |msg_p| {
                 fail_(msg_p, file, line)
             }
         }
@@ -319,7 +320,7 @@ pub unsafe fn unrecord_borrow(a: *u8, old_ref_count: uint,
             let br = borrow_list.pop();
             if br.box != a || br.file != file || br.line != line {
                 let err = fmt!("wrong borrow found, br=%?", br);
-                do err.as_c_str |msg_p| {
+                do err.to_c_str().with |msg_p| {
                     fail_(msg_p, file, line)
                 }
             }

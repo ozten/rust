@@ -12,6 +12,7 @@
 # Translation of inline assembly.
 */
 
+use std::c_str::ToCStr;
 
 use lib;
 use middle::trans::build::*;
@@ -122,8 +123,8 @@ pub fn trans_inline_asm(bcx: block, ia: &ast::inline_asm) -> block {
         ast::asm_intel => lib::llvm::AD_Intel
     };
 
-    let r = do ia.asm.as_c_str |a| {
-        do constraints.as_c_str |c| {
+    let r = do ia.asm.to_c_str().with |a| {
+        do constraints.to_c_str().with |c| {
             InlineAsmCall(bcx, a, c, inputs, output, ia.volatile, ia.alignstack, dialect)
         }
     };

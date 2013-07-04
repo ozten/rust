@@ -33,7 +33,7 @@
 #[allow(non_camel_case_types)]; // C types
 #[allow(missing_doc)];
 
-
+use std::c_str::ToCStr;
 use std::libc::{c_void, size_t};
 use std::libc;
 use std::ptr::to_unsafe_ptr;
@@ -1031,13 +1031,13 @@ pub unsafe fn buf_init(input: *u8, len: uint) -> uv_buf_t {
     return out_buf;
 }
 pub unsafe fn ip4_addr(ip: &str, port: int) -> sockaddr_in {
-    do ip.as_c_str |ip_buf| {
+    do ip.to_c_str().with |ip_buf| {
         rust_uv_ip4_addr(ip_buf as *u8,
                                  port as libc::c_int)
     }
 }
 pub unsafe fn ip6_addr(ip: &str, port: int) -> sockaddr_in6 {
-    do ip.as_c_str |ip_buf| {
+    do ip.to_c_str().with |ip_buf| {
         rust_uv_ip6_addr(ip_buf as *u8,
                                  port as libc::c_int)
     }

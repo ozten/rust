@@ -48,6 +48,7 @@ implement `Reader` and `Writer`, where appropriate.
 
 use result::Result;
 
+use c_str::ToCStr;
 use container::Container;
 use int;
 use libc;
@@ -1029,7 +1030,7 @@ pub fn stdin() -> @Reader {
 }
 
 pub fn file_reader(path: &Path) -> Result<@Reader, ~str> {
-    let f = do path.to_str().as_c_str |pathbuf| {
+    let f = do path.to_c_str().with |pathbuf| {
         do bytes!("r", 0).as_imm_buf |modebuf, _| {
             unsafe { libc::fopen(pathbuf, modebuf as *libc::c_char) }
         }
@@ -1279,9 +1280,8 @@ pub fn mk_file_writer(path: &Path, flags: &[FileFlag])
         }
     }
     let fd = unsafe {
-        do path.to_str().as_c_str |pathbuf| {
-            libc::open(pathbuf, fflags,
-                       (S_IRUSR | S_IWUSR) as c_int)
+        do path.to_c_str().with |pathbuf| {
+            libc::open(pathbuf, fflags, (S_IRUSR | S_IWUSR) as c_int)
         }
     };
     if fd < (0 as c_int) {
@@ -1565,7 +1565,7 @@ pub fn file_writer(path: &Path, flags: &[FileFlag]) -> Result<@Writer, ~str> {
 // FIXME: fileflags // #2004
 pub fn buffered_file_writer(path: &Path) -> Result<@Writer, ~str> {
     unsafe {
-        let f = do path.to_str().as_c_str |pathbuf| {
+        let f = do path.to_c_str().with |pathbuf| {
             do bytes!("w", 0).as_imm_buf |modebuf, _| {
                 libc::fopen(pathbuf, modebuf as *libc::c_char)
             }

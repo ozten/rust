@@ -42,6 +42,7 @@ pub use result::{Result, Ok, Err};
 pub use io::{print, println};
 
 // Reexported types and traits
+pub use c_str::ToCStr;
 pub use clone::{Clone, DeepClone};
 pub use cmp::{Eq, ApproxEq, Ord, TotalEq, TotalOrd, Ordering, Less, Equal, Greater, Equiv};
 pub use char::Char;
