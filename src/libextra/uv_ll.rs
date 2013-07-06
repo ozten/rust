@@ -772,11 +772,11 @@ extern {
     unsafe fn rust_uv_ip6_addr(ip: *u8, port: libc::c_int)
         -> sockaddr_in6;
     unsafe fn rust_uv_ip4_name(src: *sockaddr_in,
-                               dst: *u8,
+                               dst: *libc::c_char,
                                size: libc::size_t)
                             -> libc::c_int;
     unsafe fn rust_uv_ip6_name(src: *sockaddr_in6,
-                               dst: *u8,
+                               dst: *libc::c_char,
                                size: libc::size_t)
                             -> libc::c_int;
     unsafe fn rust_uv_ip4_port(src: *sockaddr_in) -> libc::c_uint;
@@ -1044,34 +1044,28 @@ pub unsafe fn ip6_addr(ip: &str, port: int) -> sockaddr_in6 {
 }
 pub unsafe fn ip4_name(src: &sockaddr_in) -> ~str {
     // ipv4 addr max size: 15 + 1 trailing null byte
-    let dst: ~[u8] = ~[0u8,0u8,0u8,0u8,0u8,0u8,0u8,0u8,
-                     0u8,0u8,0u8,0u8,0u8,0u8,0u8,0u8];
+    let dst = [0 as libc::c_char, .. 16];
+
     do dst.as_imm_buf |dst_buf, size| {
-        rust_uv_ip4_name(to_unsafe_ptr(src),
-                                 dst_buf, size as libc::size_t);
+        rust_uv_ip4_name(to_unsafe_ptr(src), dst_buf, size as libc::size_t);
         // seems that checking the result of uv_ip4_name
         // doesn't work too well..
         // you're stuck looking at the value of dst_buf
         // to see if it is the string representation of
         // INADDR_NONE (0xffffffff or 255.255.255.255 on
         // many platforms)
-        str::raw::from_buf(dst_buf)
+        str::raw::from_c_str(dst_buf)
     }
 }
 pub unsafe fn ip6_name(src: &sockaddr_in6) -> ~str {
     // ipv6 addr max size: 45 + 1 trailing null byte
-    let dst: ~[u8] = ~[0u8,0u8,0u8,0u8,0u8,0u8,0u8,0u8,
-                       0u8,0u8,0u8,0u8,0u8,0u8,0u8,0u8,
-                       0u8,0u8,0u8,0u8,0u8,0u8,0u8,0u8,
-                       0u8,0u8,0u8,0u8,0u8,0u8,0u8,0u8,
-                       0u8,0u8,0u8,0u8,0u8,0u8,0u8,0u8,
-                       0u8,0u8,0u8,0u8,0u8,0u8];
+    let dst = [0 as libc::c_char, .. 46];
+
     do dst.as_imm_buf |dst_buf, size| {
         let src_unsafe_ptr = to_unsafe_ptr(src);
-        let result = rust_uv_ip6_name(src_unsafe_ptr,
-                                              dst_buf, size as libc::size_t);
+        let result = rust_uv_ip6_name(src_unsafe_ptr, dst_buf, size as libc::size_t);
         match result {
-          0i32 => str::raw::from_buf(dst_buf),
+          0i32 => str::raw::from_c_str(dst_buf),
           _ => ~""
         }
     }
