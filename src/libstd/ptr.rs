@@ -232,22 +232,12 @@ pub unsafe fn array_each<T>(arr: **T, cb: &fn(*T)) {
 
 #[allow(missing_doc)]
 pub trait RawPtr<T> {
-    fn is_null(&self) -> bool;
-    fn is_not_null(&self) -> bool;
     unsafe fn to_option(&self) -> Option<&T>;
     fn offset(&self, count: uint) -> Self;
 }
 
 /// Extension methods for immutable pointers
 impl<T> RawPtr<T> for *T {
-    /// Returns true if the pointer is equal to the null pointer.
-    #[inline]
-    fn is_null(&self) -> bool { is_null(*self) }
-
-    /// Returns true if the pointer is not equal to the null pointer.
-    #[inline]
-    fn is_not_null(&self) -> bool { is_not_null(*self) }
-
     ///
     /// Returns `None` if the pointer is null, or else returns the value wrapped
     /// in `Some`.
@@ -272,14 +262,6 @@ impl<T> RawPtr<T> for *T {
 
 /// Extension methods for mutable pointers
 impl<T> RawPtr<T> for *mut T {
-    /// Returns true if the pointer is equal to the null pointer.
-    #[inline]
-    fn is_null(&self) -> bool { is_null(*self) }
-
-    /// Returns true if the pointer is not equal to the null pointer.
-    #[inline]
-    fn is_not_null(&self) -> bool { is_not_null(*self) }
-
     ///
     /// Returns `None` if the pointer is null, or else returns the value wrapped
     /// in `Some`.
@@ -300,6 +282,26 @@ impl<T> RawPtr<T> for *mut T {
     /// Calculates the offset from a mutable pointer.
     #[inline]
     fn offset(&self, count: uint) -> *mut T { mut_offset(*self, count) }
+}
+
+/// Extension methods for returning if the pointer is null or not.
+pub trait IsNullPtr<T> {
+    /// Returns true if the pointer is equal to the null pointer.
+    fn is_null(&self) -> bool;
+
+    /// Returns true if the pointer is not equal to the null pointer.
+    fn is_not_null(&self) -> bool;
+}
+
+/// Extension methods for constant pointers
+impl<T> IsNullPtr<T> for *const T {
+    /// Returns true if the pointer is equal to the null pointer.
+    #[inline]
+    fn is_null(&self) -> bool { is_null(*self) }
+
+    /// Returns true if the pointer is not equal to the null pointer.
+    #[inline]
+    fn is_not_null(&self) -> bool { is_not_null(*self) }
 }
 
 // Equality for pointers

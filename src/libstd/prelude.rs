@@ -60,7 +60,7 @@ pub use path::GenericPath;
 pub use path::Path;
 pub use path::PosixPath;
 pub use path::WindowsPath;
-pub use ptr::RawPtr;
+pub use ptr::{RawPtr, IsNullPtr};
 pub use ascii::{Ascii, AsciiCast, OwnedAsciiCast, AsciiStr, ToBytesConsume};
 pub use str::{Str, StrVector, StrSlice, OwnedStr};
 pub use from_str::{FromStr};

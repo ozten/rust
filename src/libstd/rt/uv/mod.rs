@@ -38,7 +38,6 @@ use container::Container;
 use option::*;
 use str::raw::from_c_str;
 use to_str::ToStr;
-use ptr::RawPtr;
 use vec;
 use vec::ImmutableVector;
 use ptr;

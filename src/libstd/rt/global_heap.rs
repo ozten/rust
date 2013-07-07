@@ -8,6 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use prelude::*;
 use libc::{c_char, c_void, size_t, uintptr_t, free, malloc, realloc};
 use managed::raw::{BoxHeaderRepr, BoxRepr};
 use unstable::intrinsics::TyDesc;

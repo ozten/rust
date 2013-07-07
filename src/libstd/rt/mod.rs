@@ -56,7 +56,7 @@ Several modules in `core` are clients of `rt`:
 
 #[doc(hidden)];
 
-use ptr::RawPtr;
+use ptr::{RawPtr, IsNullPtr};
 
 /// The global (exchange) heap.
 pub mod global_heap;

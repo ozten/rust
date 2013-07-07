@@ -17,6 +17,7 @@
 
 use libc::c_void;
 use cast;
+use ptr::IsNullPtr;
 use ptr;
 use cell::Cell;
 use option::{Option, Some, None};

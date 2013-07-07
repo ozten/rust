@@ -13,7 +13,7 @@ use iterator::Iterator;
 use libc;
 use ops::Drop;
 use option::{Option, Some, None};
-use ptr::RawPtr;
+use ptr::IsNullPtr;
 use ptr;
 use str::StrSlice;
 use vec::ImmutableVector;
