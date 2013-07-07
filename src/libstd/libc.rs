@@ -2116,7 +2116,7 @@ pub mod funcs {
                            envp: **c_char) -> c_int;
 
                 #[link_name = "_getcwd"]
-                unsafe fn getcwd(buf: *c_char, size: size_t) -> *c_char;
+                unsafe fn getcwd(buf: *mut c_char, size: size_t) -> *c_char;
 
                 #[link_name = "_getpid"]
                 unsafe fn getpid() -> c_int;
@@ -2280,7 +2280,7 @@ pub mod funcs {
                 unsafe fn execvp(c: *c_char, argv: **c_char) -> c_int;
                 unsafe fn fork() -> pid_t;
                 unsafe fn fpathconf(filedes: c_int, name: c_int) -> c_long;
-                unsafe fn getcwd(buf: *c_char, size: size_t) -> *c_char;
+                unsafe fn getcwd(buf: *mut c_char, size: size_t) -> *c_char;
                 unsafe fn getegid() -> gid_t;
                 unsafe fn geteuid() -> uid_t;
                 unsafe fn getgid() -> gid_t ;
