@@ -1662,39 +1662,40 @@ mod tests {
     #[test]
     fn copy_file_ok() {
         unsafe {
-          let tempdir = getcwd(); // would like to use $TMPDIR,
-                                  // doesn't seem to work on Linux
-          assert!((tempdir.to_str().len() > 0u));
-          let in = tempdir.push("in.txt");
-          let out = tempdir.push("out.txt");
+            let tempdir = getcwd(); // would like to use $TMPDIR,
+                                    // doesn't seem to work on Linux
+            assert!((tempdir.to_str().len() > 0u));
+            let in = tempdir.push("in.txt");
+            let out = tempdir.push("out.txt");
 
-          /* Write the temp input file */
+            /* Write the temp input file */
             let ostream = do in.to_str().as_c_str |fromp| {
                 do bytes!("w+b", 0).as_imm_buf |modebuf, _| {
                     libc::fopen(fromp, modebuf as *libc::c_char)
                 }
-          };
-          assert!((ostream as uint != 0u));
-          let s = ~"hello";
-          let mut buf = s.to_owned().to_c_str();
-          let len = buf.len();
-          do buf.as_mut_buf |b, _len| {
-              assert_eq!(libc::fwrite(b as *c_void, 1u as size_t,
-                                      (s.len() + 1u) as size_t, ostream),
-                         len as size_t)
-          }
-          assert_eq!(libc::fclose(ostream), (0u as c_int));
-          let in_mode = in.get_mode();
-          let rs = os::copy_file(&in, &out);
-          if (!os::path_exists(&in)) {
-            fail!("%s doesn't exist", in.to_str());
-          }
-          assert!((rs));
-          let rslt = run::process_status("diff", [in.to_str(), out.to_str()]);
-          assert_eq!(rslt, 0);
-          assert_eq!(out.get_mode(), in_mode);
-          assert!((remove_file(&in)));
-          assert!((remove_file(&out)));
+            };
+            assert!((ostream as uint != 0u));
+            let s = ~"hello";
+            let mut buf = s.to_owned().to_c_str();
+            do buf.as_mut_buf |b, len| {
+                let write_len = libc::fwrite(b as *c_void,
+                                             1u as size_t,
+                                             len as size_t,
+                                             ostream);
+                assert_eq!(write_len, len as size_t)
+            }
+            assert_eq!(libc::fclose(ostream), (0u as c_int));
+            let in_mode = in.get_mode();
+            let rs = os::copy_file(&in, &out);
+            if (!os::path_exists(&in)) {
+                fail!("%s doesn't exist", in.to_str());
+            }
+            assert!((rs));
+            let rslt = run::process_status("diff", [in.to_str(), out.to_str()]);
+            assert_eq!(rslt, 0);
+            assert_eq!(out.get_mode(), in_mode);
+            assert!((remove_file(&in)));
+            assert!((remove_file(&out)));
         }
     }
 

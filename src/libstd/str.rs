@@ -2944,6 +2944,17 @@ mod tests {
     }
 
     #[test]
+    #[ignore(cfg(windows))]
+    #[should_fail]
+    fn test_as_bytes_fail() {
+        // Don't double free. (I'm not sure if this exercises the
+        // original problem code path anymore.)
+        let s = ~"";
+        let _bytes = s.as_bytes();
+        fail!();
+    }
+
+    #[test]
     fn test_to_bytes() {
         let s = ~"ศไทย中华Việt Nam";
         let v = ~[
@@ -2955,17 +2966,6 @@ mod tests {
         assert_eq!((~"abc").to_bytes(),
                    ~['a' as u8, 'b' as u8, 'c' as u8, 0]);
         assert_eq!(s.to_bytes(), v);
-    }
-
-    #[test]
-    #[ignore(cfg(windows))]
-    #[should_fail]
-    fn test_as_bytes_fail() {
-        // Don't double free. (I'm not sure if this exercises the
-        // original problem code path anymore.)
-        let s = ~"";
-        let _bytes = s.as_bytes();
-        fail!();
     }
 
     #[test]
