@@ -185,6 +185,7 @@ impl<'self> Drop for StatRecorder<'self> {
 }
 
 pub fn decl_fn(llmod: ModuleRef, name: &str, cc: lib::llvm::CallConv, ty: Type) -> ValueRef {
+    debug!("decl_fn: %? cc: %?", name, cc);
     let llfn: ValueRef = do name.as_c_str |buf| {
         unsafe {
             llvm::LLVMGetOrInsertFunction(llmod, buf, ty.to_ref())
